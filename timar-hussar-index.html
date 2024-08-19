@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Countdown Timer and World Clocks</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            color: #00FF00;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #timer-info {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #current-time {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #countdown {
+            font-size: 4em;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #hours-left, #seconds-left {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        #progress-container {
+            width: 80%;
+            background-color: #444;
+            border-radius: 25px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 30px;
+            background-color: #00FF00;
+            border-radius: 25px 0 0 25px;
+        }
+
+        #year-marks {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin: 0 auto;
+            color: #00FF00;
+            font-size: 1em;
+        }
+
+        .year {
+            position: relative;
+            top: -10px;
+        }
+
+        #world-times {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 1em;
+        }
+
+        .country-time {
+            text-align: center;
+            flex: 1 1 150px;
+            margin: 5px;
+            min-width: 150px;
+        }
+
+        .countdown-to-next {
+            font-size: 0.8em;
+            color: #FFA500;
+        }
+    </style>
+</head>
+<body>
+
+<div id="timer-info">Starts February 7, 2006 Ends February 7, 2091</div>
+<div id="current-time"></div>
+<div id="countdown"></div>
+<div id="hours-left"></div>
+<div id="seconds-left"></div>
+<div id="progress-container">
+    <div id="progress-bar"></div>
+</div>
+<div id="year-marks"></div>
+<div id="world-times">
+    <!-- Country time elements will be populated by JavaScript -->
+</div>
+
+<script>
+    // Set birth date and target date
+    const birthDate = new Date('2006-02-07T00:00:00');
+    const targetDate = new Date('2091-02-07T00:00:00');
+
+    // List of countries and their timezone offsets in hours
+    const countries = [
+        {name: 'UK', offset: 0},
+        {name: 'Spain', offset: 1},
+        {name: 'France', offset: 1},
+        {name: 'Germany', offset: 1},
+        {name: 'Italy', offset: 1},
+        {name: 'Austria', offset: 1},
+        {name: 'Czech Republic', offset: 1},
+        {name: 'Egypt', offset: 2},
+        {name: 'Ukraine', offset: 2},
+        {name: 'Turkey', offset: 3},
+        {name: 'Russia', offset: 3},
+        {name: 'Kazakhstan', offset: 6},
+        {name: 'Afghanistan', offset: 4.5},
+        {name: 'Uzbekistan', offset: 5},
+        {name: 'Pakistan', offset: 5},
+        {name: 'India', offset: 5.5},
+        {name: 'Nepal', offset: 5.75},
+        {name: 'Bangladesh', offset: 6},
+        {name: 'Myanmar', offset: 6.5},
+        {name: 'Thailand', offset: 7},
+        {name: 'Vietnam', offset: 7},
+        {name: 'China', offset: 8},
+        {name: 'Japan', offset: 9},
+        {name: 'Philippines', offset: 8},
+        {name: 'South Korea', offset: 9},
+        {name: 'Australia', offset: 10},
+        {name: 'Papua New Guinea', offset: 10},
+        {name: 'Solomon Islands', offset: 11},
+        {name: 'New Zealand', offset: 12},
+        {name: 'Fiji', offset: 12},
+        {name: 'Tonga', offset: 13},
+        {name: 'USA', offset: -5},
+        {name: 'Samoa', offset: -11},
+        {name: 'Mexico', offset: -6},
+        {name: 'Canada', offset: -5},
+        {name: 'Guatemala', offset: -6},
+        {name: 'Colombia', offset: -5},
+        {name: 'Venezuela', offset: -4},
+        {name: 'Brazil', offset: -3},
+        {name: 'Argentina', offset: -3},
+        {name: 'Uruguay', offset: -3},
+        {name: 'Ireland', offset: 0},
+        {name: 'Senegal', offset: 0},
+        {name: 'Mauritania', offset: 0}
+    ];
+
+    function updateCurrentTime() {
+        const now = new Date();
+        const formattedTime = now.getFullYear() + '-' +
+            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+            String(now.getDate()).padStart(2, '0') + ' ' +
+            String(now.getHours()).padStart(2, '0') + ':' +
+            String(now.getMinutes()).padStart(2, '0') + ':' +
+            String(now.getSeconds()).padStart(2, '0') + '.' +
+            String(now.getMilliseconds()).padStart(3, '0');
+
+        document.getElementById('current-time').innerHTML = "Current Time: " + formattedTime;
+    }
+
+    function updateWorldTimes() {
+        const now = new Date();
+
+        // Clear existing country times
+        const worldTimesContainer = document.getElementById('world-times');
+        worldTimesContainer.innerHTML = '';
+
+        // Update each country's time
+        countries.forEach(country => {
+            const localTime = new Date(now.getTime() + (country.offset * 60 * 60 * 1000));
+            const formattedLocalTime = country.name + ': ' +
+                localTime.getFullYear() + '-' +
+                String(localTime.getMonth() + 1).padStart(2, '0') + '-' +
+                String(localTime.getDate()).padStart(2, '0') + ' ' +
+                String(localTime.getHours()).padStart(2, '0') + ':' +
+                String(localTime.getMinutes()).padStart(2, '0') + ':' +
+                String(localTime.getSeconds()).padStart(2, '0') + '.' +
+                String(localTime.getMilliseconds()).padStart(3, '0');
+
+            // Calculate time until next midnight or noon
+            const nextMidnight = new Date(localTime);
+            nextMidnight.setHours(24, 0, 0, 0); // Set to midnight
+            const nextNoon = new Date(localTime);
+            nextNoon.setHours(12, 0, 0, 0); // Set to noon
+            const timeUntilMidnight = nextMidnight - localTime;
+            const timeUntilNoon = nextNoon - localTime > 0 ? nextNoon - localTime : nextNoon - localTime + 86400000;
+
+            const countdownToMidnight = "Next Midnight: " + formatCountdown(timeUntilMidnight);
+            const countdownToNoon = "Next Noon: " + formatCountdown(timeUntilNoon);
+
+            const countryTimeDiv = document.createElement('div');
+            countryTimeDiv.className = 'country-time';
+            countryTimeDiv.innerHTML = formattedLocalTime + 
+                                       '<div class="countdown-to-next">' + countdownToMidnight + '</div>' + 
+                                       '<div class="countdown-to-next">' + countdownToNoon + '</div>';
+            worldTimesContainer.appendChild(countryTimeDiv);
+        });
+    }
+
+    function formatCountdown(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return String(hours).padStart(2, '0') + ":" + 
+               String(minutes).padStart(2, '0') + ":" + 
+               String(seconds).padStart(2, '0');
+    }
+
+    function updateCountdown() {
+        const now = new Date();
+        const timeLeft = targetDate - now;
+
+        // Calculate countdown display
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+        const formattedCountdown = 
+            String(days).padStart(3, '0') + ":" + 
+            String(hours).padStart(2, '0') + ":" + 
+            String(minutes).padStart(2, '0') + ":" + 
+            String(seconds).padStart(2, '0');
+
+        document.getElementById('countdown').innerHTML = formattedCountdown;
+
+        // Update progress bar
+        const totalTime = targetDate - birthDate;
+        const timeElapsed = now - birthDate;
+        const progressPercent = (timeElapsed / totalTime) * 100;
+        document.getElementById('progress-bar').style.width = progressPercent + '%';
+
+        // Display remaining hours
+        const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+        document.getElementById('hours-left').innerHTML = "Remaining " + hoursLeft + " hours";
+
+        // Display remaining seconds
+        const secondsLeft = Math.floor(timeLeft / 1000);
+        document.getElementById('seconds-left').innerHTML = "Remaining " + secondsLeft + " seconds";
+
+        // Generate year marks
+        generateYearMarks();
+
+        // Update every second
+        setTimeout(() => {
+            updateCurrentTime();
+            updateWorldTimes();
+            updateCountdown();
+        }, 10); // Update more frequently for detailed current time
+    }
+
+    function generateYearMarks() {
+        const yearMarksContainer = document.getElementById('year-marks');
+        yearMarksContainer.innerHTML = '';  // Initialize
+
+        const birthYear = birthDate.getFullYear();
+        const targetYear = targetDate.getFullYear();
+        const interval = 5; // 5-year interval for marks
+
+        for (let year = birthYear; year <= targetYear; year += interval) {
+            const yearMark = document.createElement('div');
+            yearMark.className = 'year';
+            yearMark.innerText = year;
+            yearMarksContainer.appendChild(yearMark);
+        }
+    }
+
+    // Start the countdown and current time initially
+    updateCurrentTime();
+    updateWorldTimes();
+    updateCountdown();
+</script>
+
+</body>
+</html>
